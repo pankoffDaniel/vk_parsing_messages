@@ -87,8 +87,6 @@ while True:
 
     progress_percent = 0
 
-    # Получение пользователей из БД
-    all_users = cursor.execute("SELECT user_name, user_link FROM users").fetchall()
     # Список новых пользователей, которых еще нет в БД и они туда попадут
     new_users = []
 
@@ -121,7 +119,7 @@ while True:
 
             # Если текущего пользователя нет в БД, то он добавляется в список, из которого потом все добавятся в БД
             user_data = (user_name, user_href)
-            if user_data not in all_users and user_data not in new_users:
+            if user_data not in new_users:
                 new_users.append(user_data)
 
             # Получение "грязного" сообщения с html вставками
@@ -283,19 +281,22 @@ while True:
     print(f'\nГотово. Файл "{file_name}" лежит в папке "{output}" рядом с этой программой.\n')
     log_output.close()
 
+    # Получение пользователей из БД
+    old_users = cursor.execute("SELECT user_name, user_link FROM users").fetchall()
     # Добавление всех новых пользователей, которых еще нет в БД
-    cursor.executemany("INSERT INTO users (user_name, user_link) VALUES (?, ?)", new_users)
+    new_unique_users = set(new_users) - set(old_users)
+    cursor.executemany("INSERT INTO users (user_name, user_link) VALUES (?, ?)", new_unique_users)
     connection.commit()
 
     time_end = time.time()  # Остановка таймера
     spent_time = round(time_end - time_start, 2)
 
-    # Получение всех диалогов из БД
-    dialogues_before = cursor.execute("SELECT id, id_dialogue FROM dialogues WHERE id_dialogue = ?", (name_folder,)).fetchone()
-
     current_datetime = datetime.datetime.utcnow()
     current_datetime = current_datetime.strftime("%d/%m/%y %H:%M:%S")
 
+    # Получение всех диалогов из БД
+    dialogues_before = cursor.execute("SELECT id, id_dialogue FROM dialogues WHERE id_dialogue = ?",
+                                      (name_folder,)).fetchone()
     # Если текущего диалога нет в БД, то он добавляется
     # Если есть, то обноваляется дата и время его последней обработки
     if not dialogues_before:
