@@ -51,5 +51,5 @@
 <ul>
   <li>Python3: <code>sudo apt install python3</code></li>
   <li>PIP: <code>sudo apt install python3-pip</code></li>
-  <li>BeautifulSoup4: <code>pip install beautifulsoup4</code></li>
+  <li>BeautifulSoup4: <code>sudo pip3 install beautifulsoup4</code></li>
 </ul>
