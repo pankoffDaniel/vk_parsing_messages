@@ -9,6 +9,8 @@ def start():
             vk_parsing_messages.run()
         elif answer == "2":
             sys_exit(0)
+        else:
+            print("Неверный ввод.")
 
 
 if __name__ == "__main__":
