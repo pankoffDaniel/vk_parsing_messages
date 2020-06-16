@@ -33,7 +33,7 @@ def run():
     while True:
         try:
             print(f"Всего страниц: {len_file_list}")
-            start_page = int(input(f"Первая страница (например — 1): "))
+            start_page = int(input("Первая страница (например — 1): "))
             end_page = int(input(f"Последняя страница (например — {len_file_list}): "))
             print()
         except ValueError:
@@ -82,20 +82,20 @@ def run():
     # Перебор всех файлов из списка файлов
     for file in file_list[start:end]:
         full_path = os.path.join(folder_path, file)
-        opened_file = open(full_path, "rb")  # Обязательно rb, так как файлы ВК в ANSI, походу
-        raw_html = opened_file.read()
+        with open(full_path, "rb") as opened_file:  # Обязательно rb, так как файлы ВК в ANSI, походу
+            raw_html = opened_file.read()
         html = BeautifulSoup(raw_html, "html.parser")
         messages = html.find_all("div", class_="message")
 
         # Перебор всех сообщений из файла
         for message in messages[::message_order]:
             user_name = message.find("div", class_="message__header").get_text().strip()
-            message_date = re.findall(",\s.*", user_name)[0].strip(', ')
-            user_name = re.findall(".+,", user_name)[0].strip(",")
+            message_date = re.findall(r",\s.*", user_name)[0].strip(', ')
+            user_name = re.findall(r".+,", user_name)[0].strip(",")
 
             # Если сообщение редактировалось, то выводит "(ред.)" в самом конце сообщения
             edited = ""
-            if re.findall("(ред\.)", message_date):
+            if re.findall(r"(ред\.)", message_date):
                 message_date = message_date.replace("(ред.)", "").strip()
                 edited = "(ред.)"
 
@@ -157,15 +157,15 @@ def run():
 
             # Документы, голосовые сообщения, видеозаписи и фотографии - полный порядок!
             # Шаблоны для поиска в регулярных выражениях
-            pattern_video_url = "https?://?vk\.com/video\S+"
-            pattern_document_url = "https?://?vk\.com/doc[^s]\S+"
-            pattern_audio_message_url = "https?://?cs[0-9]+\.userapi\.com//?u[0-9]+/audiomsg/.+/.+\.ogg"
-            pattern_audio_url = "https?://?vk\.com/audio\S+"
-            pattern_photo_url_1 = "https?://?sun[0-9]+-[0-9]+\.userapi\.com/\S+\.jpg"
-            pattern_photo_url_2 = "https?://?vk\.com/im\?sel=[0-9]+&z=photo[0-9]+_[0-9]*%[0-9]+Fmail[0-9]+"
-            pattern_photo_url_3 = "https?://?vk\.com/photo\S+"
-            pattern_photo_url_4 = "https?://?pp\.userapi\.com\S+\.jpg"
-            pattern_other_url = "https?://?[^\"\s<>]+"
+            pattern_video_url = r"https?://?vk\.com/video\S+"
+            pattern_document_url = r"https?://?vk\.com/doc[^s]\S+"
+            pattern_audio_message_url = r"https?://?cs[0-9]+\.userapi\.com//?u[0-9]+/audiomsg/.+/.+\.ogg"
+            pattern_audio_url = r"https?://?vk\.com/audio\S+"
+            pattern_photo_url_1 = r"https?://?sun[0-9]+-[0-9]+\.userapi\.com/\S+\.jpg"
+            pattern_photo_url_2 = r"https?://?vk\.com/im\?sel=[0-9]+&z=photo[0-9]+_[0-9]*%[0-9]+Fmail[0-9]+"
+            pattern_photo_url_3 = r"https?://?vk\.com/photo\S+"
+            pattern_photo_url_4 = r"https?://?pp\.userapi\.com\S+\.jpg"
+            pattern_other_url = r"https?://?[^\"\s<>]+"
 
             # Все найденные ссылки из сообщения
             found_other_urls = re.findall(pattern_other_url, user_message)
@@ -262,8 +262,6 @@ def run():
             # Добавление одной строчки записи в файл "log_output"
             log_output.writelines(f"<a href='{user_href}'>{user_name}</a> — {dialogue_action}{user_message} {descriptions_and_sum_list} {output_links} {output_other_descriptions} ({message_date}) {edited}</br>")
 
-        opened_file.close()
-
         progress_percent += 1
         print("Выполнено {0:.2f}%".format(progress_percent / (abs(end_page - start_page) + 1) * 100))
 
@@ -287,9 +285,8 @@ def run():
     # Считывается код из схемы и отдается БД на её создание
     if name_db not in current_directory_list:
         schema_path = os.path.join(db_folder, "schema.sql")
-        schema = open(schema_path, 'r')
-        loaded_schema = schema.read()
-        schema.close()
+        with open(schema_path, 'r') as schema:
+            loaded_schema = schema.read()
         db.create_database(loaded_schema)
 
     # Получение пользователей из БД
